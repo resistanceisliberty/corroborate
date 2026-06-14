@@ -24,9 +24,9 @@ truth to check the score against. Once the engine is calibrated, it ports to dom
 4. **Cross-modal corroboration (phase 2)** — does a social claim line up with an
    independent seismic network, a satellite hit, an ADS-B track?
 
-Baseline to beat / read first: **EventMapper** —
+Baseline to beat / read first: [**EventMapper**](https://arxiv.org/pdf/2001.08700) —
 "Detecting Real-World Physical Events Using Corroborative and Probabilistic
-Sources." It uses a spatio-temporal grid to score corroboration; we extend it
+Sources." It uses a spatio-temporal grid to score corroboration; I extend it
 with independence weighting, calibration, and refutation.
 
 ---
