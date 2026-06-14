@@ -1,0 +1,17 @@
+# data + models (never commit)
+data/
+*.duckdb
+*.duckdb.wal
+*.pkl
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+
+# editor
+.vscode/
+.idea/

@@ -1,0 +1,23 @@
+[project]
+name = "corroborate"
+version = "0.1.0"
+description = "Score how much independent corroboration a reported event has"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "duckdb>=1.1",
+    "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/corroborate"]
+
+[tool.ruff]
+line-length = 100
