@@ -25,6 +25,16 @@ CREATE TABLE IF NOT EXISTS claims (
     raw_json            JSON,
     content_hash        TEXT
 );
+
+-- Authoritative catalog (USGS) used later as calibration labels.
+CREATE TABLE IF NOT EXISTS ground_truth (
+    gt_id               TEXT PRIMARY KEY,
+    event_time          TIMESTAMP,
+    lat                 DOUBLE,
+    lon                 DOUBLE,
+    magnitude           DOUBLE,
+    raw_json            JSON
+);
 """
 
 
