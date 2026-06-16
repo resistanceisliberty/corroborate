@@ -88,8 +88,7 @@ CREATE TABLE claims (
   magnitude         DOUBLE,         -- nullable
   raw_text          TEXT,
   raw_json          JSON,
-  content_hash      TEXT,           -- exact-dup
-  minhash           BLOB            -- near-dup signature (datasketch)
+  content_hash      TEXT            -- exact-dup
 );
 
 -- Candidate events = clusters of claims.
@@ -148,9 +147,12 @@ Async pollers, one per source, all emit normalized `Claim`s. Base class handles
 polling cadence, dedup-on-write by `external_id`, and writing `raw_json`.
 
 ### 4.2 Geoparse (`geoparse.py`)
-USGS/EMSC arrive geocoded. Social/news need extraction: spaCy NER (GPE/LOC) +
-GeoNames gazetteer lookup → centroid + `loc_uncertainty_km` (bigger for
-country-level, smaller for a named town). This is the messiest part; budget time.
+USGS/EMSC arrive geocoded. Social/news need extraction: an offline gazetteer
+(`geonamescache` — cities + country capitals) plus a small supplement of
+sub-national seismic regions, with a proper-noun heuristic and a confidence floor
+that drops claims with no confident match → centroid + `loc_uncertainty_km`
+(bigger for country-level, smaller for a named town). This is the messiest part;
+budget time.
 
 ### 4.3 Dedup / independence (`dedup.py`) — what sets this apart
 - **Exact dup:** same `external_id` or `content_hash` → drop.
@@ -241,9 +243,9 @@ corroborate/
 
 ## 6. Milestones
 
-- **M0** Scaffold: repo, `pyproject.toml`, data model, DuckDB schema.
-- **M1** USGS + EMSC ingest → `claims` / `ground_truth` populated.
-- **M2** Dedup + ST-DBSCAN clustering → `events`.
+- **M0** ✅ Scaffold: repo, `pyproject.toml`, data model, DuckDB schema.
+- **M1** ✅ USGS + EMSC ingest → `claims` / `ground_truth` populated.
+- **M2** ✅ Dedup + ST-DBSCAN clustering → `events`.
 - **M3** Feature extraction + calibrated scorer + reliability diagram.
 - **M4** FastAPI GeoJSON endpoint.
 - **M5** MapLibre map with score-colored markers + time slider.
@@ -259,9 +261,9 @@ calibrated, independence-aware corroboration score validated against truth.
 
 Managed with `uv` (per project preference — no pip).
 
-Core: `duckdb`, `httpx`, `pydantic`, `scikit-learn`, `numpy`, `pandas`,
-`datasketch`, `fastapi`, `uvicorn`.
-Geoparse (M6): `spacy` (+ `en_core_web_sm`), a GeoNames extract.
+Core: `duckdb`, `httpx`, `pydantic`, `numpy`, `scikit-learn`, `datasketch`,
+`fastapi`, `uvicorn`.
+Geoparse (M6): `geonamescache` (offline gazetteer).
 Social (M6): `atproto` (Bluesky); X.com via plain `httpx` against API v2 + a
 Bearer token in env (`X_BEARER_TOKEN`) — paid tier required.
 Dev: `pytest`, `ruff`.
