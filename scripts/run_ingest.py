@@ -1,9 +1,9 @@
-"""Poll USGS and write claims (+ ground_truth) to DuckDB.
+"""Poll sources once and write claims (+ USGS ground_truth) to DuckDB.
 
 Usage: uv run python scripts/run_ingest.py
 
-USGS is both a claim source and our authoritative catalog, so each event is
-written to `claims` and mirrored into `ground_truth`. Dedup-on-write by
+USGS (ground truth) and EMSC (an independent network) both run. Each source runs
+independently — one failing does not abort the others. Dedup-on-write by
 (source_id, external_id).
 """
 
@@ -12,6 +12,8 @@ from __future__ import annotations
 import json
 
 from corroborate import db
+from corroborate.ingest.base import Poller
+from corroborate.ingest.emsc import EMSCPoller
 from corroborate.ingest.usgs import USGSPoller
 
 
@@ -47,16 +49,27 @@ def _mirror_ground_truth(con, c) -> None:
     )
 
 
+def _run_poller(con, poller: Poller, *, ground_truth: bool) -> None:
+    """Fetch from one source and write claims; isolate failures per source."""
+    try:
+        inserted = 0
+        for claim in poller.fetch():
+            if _insert_claim(con, claim):
+                inserted += 1
+            if ground_truth:
+                _mirror_ground_truth(con, claim)
+        label = "ground truth" if ground_truth else "probabilistic"
+        print(f"{poller.source_id}: inserted {inserted} new claims ({label})")
+    except Exception as exc:  # noqa: BLE001 — one bad source must not abort the run
+        print(f"{poller.source_id}: ERROR {type(exc).__name__}: {exc}")
+
+
 def main() -> None:
     db.init_db()
     con = db.connect()
     try:
-        inserted = 0
-        for claim in USGSPoller().fetch():
-            if _insert_claim(con, claim):
-                inserted += 1
-            _mirror_ground_truth(con, claim)
-        print(f"usgs: inserted {inserted} new claims")
+        _run_poller(con, USGSPoller(), ground_truth=True)
+        _run_poller(con, EMSCPoller(), ground_truth=False)
     finally:
         con.close()
 

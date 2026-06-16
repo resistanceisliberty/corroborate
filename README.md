@@ -11,9 +11,10 @@ check a confidence score against before pointing this at messier domains.
 
 ## Status
 
-Ingesting the live USGS feed into the `claims` table (and mirroring it into a
-`ground_truth` catalog for later calibration). A second independent network,
-clustering, and scoring come next — see [docs/BUILD.md](docs/BUILD.md).
+Ingesting two independent seismic networks — USGS (also mirrored into a
+`ground_truth` catalog for later calibration) and EMSC. Each source runs in
+isolation, so one feed failing doesn't abort the rest. Clustering and scoring
+come next — see [docs/BUILD.md](docs/BUILD.md).
 
 ## Run
 
