@@ -11,16 +11,18 @@ check a confidence score against before pointing this at messier domains.
 
 ## Status
 
-Ingesting two independent seismic networks — USGS (also mirrored into a
-`ground_truth` catalog for later calibration) and EMSC. Each source runs in
-isolation, so one feed failing doesn't abort the rest. Clustering and scoring
-come next — see [docs/BUILD.md](docs/BUILD.md).
+Ingesting two independent seismic networks (USGS + EMSC), then clustering the
+claims in space and time into candidate events. Reposts of the same wire are
+collapsed by MinHash so corroboration counts *independent* sources, not raw
+report volume. Scoring against ground truth comes next — see
+[docs/BUILD.md](docs/BUILD.md).
 
 ## Run
 
 ```bash
 uv sync
-uv run python scripts/run_ingest.py
+uv run python scripts/run_ingest.py    # poll USGS + EMSC into claims
+uv run python scripts/run_cluster.py   # cluster claims into candidate events
 ```
 
 ## Layout

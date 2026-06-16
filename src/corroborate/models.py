@@ -24,3 +24,20 @@ class Claim(BaseModel):
     raw_text: str = ""
     raw_json: dict | None = None
     content_hash: str | None = None
+
+
+class Event(BaseModel):
+    """A candidate event: a cluster of claims with aggregate corroboration stats."""
+
+    event_id: str
+    centroid_lat: float
+    centroid_lon: float
+    est_time: datetime
+    first_seen: datetime
+    last_updated: datetime
+    n_claims: int
+    n_independent: float
+    n_source_types: int
+    score: float | None = None        # calibrated P(real), filled by the scorer
+    refutation_flag: bool = False
+    status: str = "candidate"         # 'candidate' | 'scored'

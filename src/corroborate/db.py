@@ -35,6 +35,28 @@ CREATE TABLE IF NOT EXISTS ground_truth (
     magnitude           DOUBLE,
     raw_json            JSON
 );
+
+-- Candidate events = clusters of claims.
+CREATE TABLE IF NOT EXISTS events (
+    event_id            UUID PRIMARY KEY,
+    centroid_lat        DOUBLE,
+    centroid_lon        DOUBLE,
+    est_time            TIMESTAMP,
+    first_seen          TIMESTAMP,
+    last_updated        TIMESTAMP,
+    n_claims            INTEGER,
+    n_independent       DOUBLE,
+    n_source_types      INTEGER,
+    score               DOUBLE,
+    refutation_flag     BOOLEAN,
+    status              TEXT
+);
+
+CREATE TABLE IF NOT EXISTS event_claims (
+    event_id            UUID,
+    claim_id            UUID,
+    weight              DOUBLE
+);
 """
 
 
