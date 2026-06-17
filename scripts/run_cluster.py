@@ -9,7 +9,7 @@ candidate events by corroboration level.
 
 from __future__ import annotations
 
-from corroborate import db
+from corroborate import config, db
 from corroborate.cluster import cluster_claims
 from corroborate.models import Claim
 
@@ -20,7 +20,13 @@ def _load_claims(con) -> list[Claim]:
         "event_time", "time_uncertainty_s", "lat", "lon", "loc_uncertainty_km",
         "magnitude", "raw_text", "content_hash",
     ]
-    rows = con.execute(f"SELECT {', '.join(cols)} FROM claims").fetchall()
+    # Ground-truth sources are held out as labels only (§2) — never clustered.
+    gt = list(config.GROUND_TRUTH_SOURCES)
+    placeholders = ", ".join("?" for _ in gt) or "''"
+    rows = con.execute(
+        f"SELECT {', '.join(cols)} FROM claims WHERE source_id NOT IN ({placeholders})",
+        gt,
+    ).fetchall()
     claims = []
     for row in rows:
         data = dict(zip(cols, row))
