@@ -38,11 +38,17 @@ RELIABILITY_PNG = DATA_DIR / "reliability.png"
 # --- sources ---
 # all_day (global, last 24h) overlaps EMSC's window, giving a real mix of
 # confirmed/unconfirmed candidates for calibration.
+MASTODON_INSTANCE = "https://mastodon.social"  # public tag timeline needs no auth
 USGS_FEED = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
 EMSC_FEED = "https://www.seismicportal.eu/fdsnws/event/1/query?format=json&limit=1000"
+GDACS_RSS = "https://www.gdacs.org/xml/rss.xml"
 
 # Per-source reliability priors (hand-set for now; learn from history later).
 SOURCE_PRIORS: dict[str, float] = {
     "usgs": 0.99,
     "emsc": 0.97,
+    "rss:gdacs": 0.75,
+    "mastodon": 0.30,
+    "bluesky": 0.30,
+    "x": 0.25,  # higher volume than Bluesky, but noisier / more bots
 }

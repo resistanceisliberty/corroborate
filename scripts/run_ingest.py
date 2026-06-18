@@ -1,10 +1,10 @@
-"""Poll sources once and write claims (+ USGS ground_truth) to DuckDB.
+"""Poll sources once and write Claims (+ USGS ground_truth) to DuckDB.
 
 Usage: uv run python scripts/run_ingest.py
 
-USGS (ground truth) and EMSC (an independent network) both run. Each source runs
-independently — one failing does not abort the others. Dedup-on-write by
-(source_id, external_id).
+M1 status: USGS (ground truth) and EMSC (independent network) are real. Social/
+news pollers remain stubs (M6). Each source runs independently — one failing does
+not abort the others. Dedup-on-write by (source_id, external_id).
 """
 
 from __future__ import annotations
@@ -13,8 +13,11 @@ import json
 
 from corroborate import db
 from corroborate.ingest.base import Poller
+from corroborate.ingest.bluesky import BlueskyPoller
 from corroborate.ingest.emsc import EMSCPoller
+from corroborate.ingest.mastodon import MastodonPoller
 from corroborate.ingest.usgs import USGSPoller
+from corroborate.ingest.x import XPoller
 
 
 def _insert_claim(con, c) -> bool:
@@ -60,6 +63,8 @@ def _run_poller(con, poller: Poller, *, ground_truth: bool) -> None:
                 _mirror_ground_truth(con, claim)
         label = "ground truth" if ground_truth else "probabilistic"
         print(f"{poller.source_id}: inserted {inserted} new claims ({label})")
+    except NotImplementedError:
+        print(f"{poller.source_id}: skipped (stub)")
     except Exception as exc:  # noqa: BLE001 — one bad source must not abort the run
         print(f"{poller.source_id}: ERROR {type(exc).__name__}: {exc}")
 
@@ -70,6 +75,10 @@ def main() -> None:
     try:
         _run_poller(con, USGSPoller(), ground_truth=True)
         _run_poller(con, EMSCPoller(), ground_truth=False)
+        _run_poller(con, MastodonPoller(), ground_truth=False)  # unauthenticated
+        _run_poller(con, BlueskyPoller(), ground_truth=False)   # needs BLUESKY_* env
+        _run_poller(con, XPoller(), ground_truth=False)         # needs X_BEARER_TOKEN
+        # TODO M6: RSSPoller (news/disaster)
     finally:
         con.close()
 

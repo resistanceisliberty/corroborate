@@ -16,6 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+geoparse = ["geonamescache>=2.0"]  # offline gazetteer for social geoparsing
 viz = ["matplotlib>=3.8"]  # optional: reliability-diagram PNG (calibrate.py)
 dev = ["pytest>=8.0", "ruff>=0.6"]
 

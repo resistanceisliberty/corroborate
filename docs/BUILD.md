@@ -249,7 +249,7 @@ corroborate/
 - **M3** ✅ Feature extraction + calibrated scorer + reliability diagram.
 - **M4** ✅ FastAPI GeoJSON endpoint.
 - **M5** ✅ MapLibre map with score-colored markers + time slider.
-- **M6** Social sources (Bluesky / X) + geoparse.
+- **M6** ✅ Social sources (Mastodon / Bluesky / X) + geoparse.
 - **M7** Refutation flag end-to-end.
 
 **Weekend cut:** M0–M5 on USGS + EMSC proves the core idea — an automated,
