@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Corroborate</title>
+  <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; }
+    #map { position: absolute; inset: 0; }
+    .panel { position: absolute; bottom: 1rem; left: 1rem; background: #fff;
+             padding: .7rem .9rem; border-radius: 6px; box-shadow: 0 1px 6px rgba(0,0,0,.3);
+             font-size: 13px; width: 280px; }
+    .panel h1 { font-size: 14px; margin: 0 0 .4rem; }
+    .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+              margin-right: 5px; vertical-align: middle; }
+    .row { margin-top: .5rem; }
+    #time { width: 100%; }
+    .muted { color: #666; font-size: 12px; }
+    .maplibregl-popup-content { font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="panel">
+    <h1>Corroborate — P(real)</h1>
+    <div>
+      <span class="swatch" style="background:#d73027"></span>low
+      <span class="swatch" style="background:#fee08b"></span>mid
+      <span class="swatch" style="background:#1a9850"></span>high
+      &nbsp;·&nbsp;<span class="swatch" style="background:#fff;border:3px solid #7b3294"></span>disputed
+    </div>
+    <div class="row muted">marker size = independent sources</div>
+    <div class="row">
+      <label for="time">show events up to: <span id="time-label">—</span></label>
+      <input type="range" id="time" min="0" max="100" value="100" />
+    </div>
+    <div class="row muted" id="count">—</div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

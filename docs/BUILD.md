@@ -247,8 +247,8 @@ corroborate/
 - **M1** ✅ USGS + EMSC ingest → `claims` / `ground_truth` populated.
 - **M2** ✅ Dedup + ST-DBSCAN clustering → `events`.
 - **M3** ✅ Feature extraction + calibrated scorer + reliability diagram.
-- **M4** FastAPI GeoJSON endpoint.
-- **M5** MapLibre map with score-colored markers + time slider.
+- **M4** ✅ FastAPI GeoJSON endpoint.
+- **M5** ✅ MapLibre map with score-colored markers + time slider.
 - **M6** Social sources (Bluesky / X) + geoparse.
 - **M7** Refutation flag end-to-end.
 
