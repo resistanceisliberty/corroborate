@@ -20,8 +20,6 @@ scored events as GeoJSON behind a MapLibre map. See [docs/BUILD.md](docs/BUILD.m
 
 ## Run
 
-Run these from the repo root (`uv` needs the project's `pyproject.toml`):
-
 ```bash
 git clone https://github.com/resistanceisliberty/corroborate
 cd corroborate
