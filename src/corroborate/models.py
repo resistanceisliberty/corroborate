@@ -23,7 +23,6 @@ class Claim(BaseModel):
     magnitude: float | None = None
     raw_text: str = ""
     raw_json: dict | None = None
-    content_hash: str | None = None
 
 
 class Event(BaseModel):

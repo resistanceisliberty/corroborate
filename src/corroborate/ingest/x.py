@@ -94,5 +94,4 @@ class XPoller(Poller):
                 magnitude=None,
                 raw_text=text,
                 raw_json=tweet,
-                content_hash=tweet.get("id"),
             )

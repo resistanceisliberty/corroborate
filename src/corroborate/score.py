@@ -96,10 +96,3 @@ def load_model():
         with open(path, "rb") as fh:
             _MODEL = _RestrictedUnpickler(fh).load()
     return _MODEL
-
-
-def score_event(event: Event, claims: list[Claim]) -> float:
-    """Return calibrated P(real) for one candidate event."""
-    model = load_model()
-    x = np.array([feature_vector(event, claims)], dtype=float)
-    return float(model.predict_proba(x)[0, 1])

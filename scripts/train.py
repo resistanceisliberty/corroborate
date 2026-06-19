@@ -2,8 +2,8 @@
 
 Usage: uv run python scripts/train.py
 
-TODO (M3): wires together cluster -> label vs ground_truth -> features ->
-calibrate.train_and_calibrate(). Currently delegates to the stub.
+Labels events vs USGS ground truth, fits the calibrated model, writes scores back,
+and saves the model + reliability artifacts (see corroborate.calibrate).
 """
 
 from __future__ import annotations

@@ -61,5 +61,4 @@ class EMSCPoller(Poller):
                 magnitude=props.get("mag"),
                 raw_text=props.get("flynn_region", ""),
                 raw_json=props,
-                content_hash=external_id,
             )

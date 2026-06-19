@@ -34,7 +34,7 @@ def load_events_with_claims(con) -> list[tuple[Event, list[Claim]]]:
     ccols = [
         "claim_id", "source_id", "source_type", "external_id", "ingested_at",
         "event_time", "time_uncertainty_s", "lat", "lon", "loc_uncertainty_km",
-        "magnitude", "raw_text", "content_hash",
+        "magnitude", "raw_text",
     ]
     claims: dict[str, Claim] = {}
     for row in con.execute(f"SELECT {', '.join(ccols)} FROM claims").fetchall():

@@ -7,8 +7,6 @@ import duckdb
 from . import config
 
 _SCHEMA = """
-INSTALL spatial; LOAD spatial;
-
 CREATE TABLE IF NOT EXISTS claims (
     claim_id            UUID PRIMARY KEY,
     source_id           TEXT,
@@ -22,8 +20,7 @@ CREATE TABLE IF NOT EXISTS claims (
     loc_uncertainty_km  DOUBLE,
     magnitude           DOUBLE,
     raw_text            TEXT,
-    raw_json            JSON,
-    content_hash        TEXT
+    raw_json            JSON
 );
 
 -- Authoritative catalog (USGS) used later as calibration labels.

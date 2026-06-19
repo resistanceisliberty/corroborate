@@ -31,13 +31,13 @@ def _insert_claim(con, c) -> bool:
     con.execute(
         """INSERT INTO claims (claim_id, source_id, source_type, external_id,
                ingested_at, event_time, time_uncertainty_s, lat, lon,
-               loc_uncertainty_km, magnitude, raw_text, raw_json, content_hash)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               loc_uncertainty_km, magnitude, raw_text, raw_json)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         [
             c.claim_id, c.source_id, c.source_type, c.external_id,
             c.ingested_at, c.event_time, c.time_uncertainty_s, c.lat, c.lon,
             c.loc_uncertainty_km, c.magnitude, c.raw_text,
-            json.dumps(c.raw_json), c.content_hash,
+            json.dumps(c.raw_json),
         ],
     )
     return True

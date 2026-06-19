@@ -155,7 +155,7 @@ def cluster_claims(claims: list[Claim]) -> list[ClusteredEvent]:
 _CLAIM_COLS = [
     "claim_id", "source_id", "source_type", "external_id", "ingested_at",
     "event_time", "time_uncertainty_s", "lat", "lon", "loc_uncertainty_km",
-    "magnitude", "raw_text", "content_hash",
+    "magnitude", "raw_text",
 ]
 
 

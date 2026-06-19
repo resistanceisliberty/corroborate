@@ -75,5 +75,4 @@ class MastodonPoller(Poller):
                     magnitude=None,
                     raw_text=text,
                     raw_json=status,
-                    content_hash=str(sid),
                 )

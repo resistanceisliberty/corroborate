@@ -87,8 +87,7 @@ CREATE TABLE claims (
   loc_uncertainty_km DOUBLE,
   magnitude         DOUBLE,         -- nullable
   raw_text          TEXT,
-  raw_json          JSON,
-  content_hash      TEXT            -- exact-dup
+  raw_json          JSON
 );
 
 -- Candidate events = clusters of claims.
@@ -155,7 +154,7 @@ that drops claims with no confident match → centroid + `loc_uncertainty_km`
 budget time.
 
 ### 4.3 Dedup / independence (`dedup.py`) — what sets this apart
-- **Exact dup:** same `external_id` or `content_hash` → drop.
+- **Exact dup:** same `external_id` → drop.
 - **Near dup:** MinHash (datasketch) over shingled text; Jaccard > 0.8 groups
   reposts/quote-tweets of the same wire.
 - **Independence weight:** each near-dup group contributes total weight ~1, split

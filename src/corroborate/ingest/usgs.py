@@ -50,5 +50,4 @@ class USGSPoller(Poller):
                 magnitude=props.get("mag"),
                 raw_text=props.get("title", ""),
                 raw_json=props,
-                content_hash=feat.get("id"),
             )

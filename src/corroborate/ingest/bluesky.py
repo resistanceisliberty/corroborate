@@ -91,5 +91,4 @@ class BlueskyPoller(Poller):
                     magnitude=None,
                     raw_text=text,
                     raw_json=post,
-                    content_hash=uri,
                 )
