@@ -65,6 +65,29 @@ def test_singleton_kept_as_candidate():
     assert events[0].event.n_independent == 1.0
 
 
+def test_refutation_flag_on_overextended_cluster():
+    # A density-chained line of claims spanning ~480 km (80 km steps) -> one
+    # cluster, but mass at both far ends => contradictory locations.
+    claims = [
+        _claim(f"c{i}", "emsc", 0.0, i * 0.72, dt_min=i, text=f"quake report number {i} here")
+        for i in range(7)
+    ]
+    events = cluster_claims(claims)
+    assert len(events) == 1
+    assert events[0].event.refutation_flag is True
+
+
+def test_no_refutation_on_tight_cluster():
+    claims = [
+        _claim("a", "usgs", 34.00, -118.00, text="quake near los angeles area"),
+        _claim("b", "emsc", 34.05, -118.02, dt_min=2, text="seismic event so cal"),
+        _claim("c", "mastodon", 33.98, -118.01, dt_min=3, text="felt it in los angeles"),
+    ]
+    events = cluster_claims(claims)
+    assert len(events) == 1
+    assert events[0].event.refutation_flag is False
+
+
 def test_reposts_dont_inflate_independence():
     # Three near-identical reposts at one place/time -> 1 event, n_independent ~ 1.
     wire = "BREAKING magnitude six earthquake strikes off the coast right now"

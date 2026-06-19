@@ -28,6 +28,13 @@ GT_MATCH_TIME_MIN = 60.0
 # leaking the label into the features. Everything else is the probabilistic pool.
 GROUND_TRUTH_SOURCES: set[str] = {"usgs"}
 
+# --- refutation ---
+# Flag an event when its claims spread past REFUTE_DIST_KM with at least
+# REFUTE_MIN_MASS of the (independence-weighted) mass at *each* extreme — i.e.
+# the claims point to contradictory locations, not one stray outlier.
+REFUTE_DIST_KM = 300.0
+REFUTE_MIN_MASS = 0.30
+
 # --- scoring / calibration ---
 SOURCE_PRIOR_DEFAULT = 0.20
 RELIABILITY_BINS = 10

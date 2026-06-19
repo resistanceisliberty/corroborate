@@ -250,7 +250,9 @@ corroborate/
 - **M4** ✅ FastAPI GeoJSON endpoint.
 - **M5** ✅ MapLibre map with score-colored markers + time slider.
 - **M6** ✅ Social sources (Mastodon / Bluesky / X) + geoparse.
-- **M7** Refutation flag end-to-end.
+- **M7** ✅ Refutation flag end-to-end.
+
+**Status:** M0–M7 complete — the full pipeline runs on live data.
 
 **Weekend cut:** M0–M5 on USGS + EMSC proves the core idea — an automated,
 calibrated, independence-aware corroboration score validated against truth.

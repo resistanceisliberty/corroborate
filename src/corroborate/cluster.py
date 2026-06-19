@@ -22,6 +22,7 @@ from sklearn.cluster import DBSCAN
 from . import config
 from .dedup import independence_weights
 from .models import Claim, Event
+from .util import haversine_km
 
 _EARTH_R_KM = 6371.0088
 
@@ -71,6 +72,37 @@ def _labels(claims: list[Claim]) -> np.ndarray:
     return labels
 
 
+def _refutation(members: list[Claim], weights: list[float]) -> bool:
+    """True when claims point to contradictory locations (docs/BUILD.md §4.7).
+
+    Find the farthest-apart pair; if it exceeds REFUTE_DIST_KM, assign every claim
+    to its nearer extreme and require both ends to carry >= REFUTE_MIN_MASS of the
+    independence-weighted mass — so a single stray outlier does not trip the flag.
+    """
+    n = len(members)
+    if n < 3:
+        return False  # pairs are always within eps_space; nothing to contradict
+    far = 0.0
+    a = b = 0
+    for i in range(n):
+        for j in range(i + 1, n):
+            d = haversine_km(members[i].lat, members[i].lon, members[j].lat, members[j].lon)
+            if d > far:
+                far, a, b = d, i, j
+    if far <= config.REFUTE_DIST_KM:
+        return False
+    mass_a = mass_b = 0.0
+    for k in range(n):
+        da = haversine_km(members[k].lat, members[k].lon, members[a].lat, members[a].lon)
+        db = haversine_km(members[k].lat, members[k].lon, members[b].lat, members[b].lon)
+        if da <= db:
+            mass_a += weights[k]
+        else:
+            mass_b += weights[k]
+    total = mass_a + mass_b or 1.0
+    return min(mass_a, mass_b) / total >= config.REFUTE_MIN_MASS
+
+
 def _build_event(members: list[Claim]) -> ClusteredEvent:
     weights, n_independent = independence_weights(members)
     w = np.array(weights, dtype=float)
@@ -96,7 +128,7 @@ def _build_event(members: list[Claim]) -> ClusteredEvent:
         n_claims=len(members),
         n_independent=n_independent,
         n_source_types=len({c.source_type for c in members}),
-        refutation_flag=False,  # TODO: contradiction detection
+        refutation_flag=_refutation(members, weights),
         status="candidate",
     )
     return ClusteredEvent(event=event, claim_ids=[c.claim_id for c in members], weights=weights)

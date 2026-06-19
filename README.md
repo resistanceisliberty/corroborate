@@ -15,8 +15,9 @@ Ingest authoritative seismic networks (USGS + EMSC) **and social posts** (Mastod
 live; Bluesky/X behind credentials), geoparse the social text, cluster everything in
 space and time (MinHash collapses reposts so corroboration counts *independent*
 sources), score each candidate event with a **calibrated P(real)** — trained against
-held-out USGS ground truth and validated with a reliability diagram — then serve the
-scored events as GeoJSON behind a MapLibre map. See [docs/BUILD.md](docs/BUILD.md).
+held-out USGS ground truth and validated with a reliability diagram, flag events
+whose claims point to contradictory locations, and serve the scored events as
+GeoJSON behind a MapLibre map. See [docs/BUILD.md](docs/BUILD.md).
 
 ## Run
 
