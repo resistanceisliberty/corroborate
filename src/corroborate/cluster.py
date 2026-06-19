@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import numpy as np
 from sklearn.cluster import DBSCAN
@@ -143,3 +143,139 @@ def cluster_claims(claims: list[Claim]) -> list[ClusteredEvent]:
     for claim, label in zip(claims, labels):
         by_label.setdefault(int(label), []).append(claim)
     return [_build_event(members) for members in by_label.values()]
+
+
+# --------------------------------------------------------------------------- #
+# DB orchestration for the live loop (caller passes a DuckDB connection)
+# --------------------------------------------------------------------------- #
+# Clustering is O(n²) in the number of claims, so a full recompute over all of
+# history would eventually OOM on a feed that never stops. Instead we cluster only
+# a rolling window of recent claims and prune anything past the retention horizon.
+
+_CLAIM_COLS = [
+    "claim_id", "source_id", "source_type", "external_id", "ingested_at",
+    "event_time", "time_uncertainty_s", "lat", "lon", "loc_uncertainty_km",
+    "magnitude", "raw_text", "content_hash",
+]
+
+
+def _gt_filter() -> tuple[str, list[str]]:
+    """SQL predicate + params excluding held-out ground-truth sources (config §2)."""
+    gt = list(config.GROUND_TRUTH_SOURCES)
+    placeholders = ", ".join("?" for _ in gt) or "''"
+    return f"source_id NOT IN ({placeholders})", gt
+
+
+def window_cutoff(con, window_hours: float) -> datetime | None:
+    """Oldest event_time to cluster: most recent clustered claim minus the window.
+
+    Anchoring on the latest claim rather than wall-clock makes the window behave
+    identically on a live feed and on a replayed historical dump. Returns None when
+    there are no clusterable claims yet.
+    """
+    where, params = _gt_filter()
+    anchor = con.execute(
+        f"SELECT max(event_time) FROM claims WHERE {where}", params
+    ).fetchone()[0]
+    if anchor is None:
+        return None
+    return anchor - timedelta(hours=window_hours)
+
+
+def _load_window(con, cutoff: datetime | None) -> list[Claim]:
+    """Load clusterable claims (ground truth held out) at/after the window cutoff."""
+    where, params = _gt_filter()
+    if cutoff is not None:
+        where += " AND event_time >= ?"
+        params = [*params, cutoff]
+    rows = con.execute(
+        f"SELECT {', '.join(_CLAIM_COLS)} FROM claims WHERE {where}", params
+    ).fetchall()
+    claims = []
+    for row in rows:
+        data = dict(zip(_CLAIM_COLS, row))
+        data["claim_id"] = str(data["claim_id"])  # DuckDB returns UUID objects
+        claims.append(Claim(**data))
+    return claims
+
+
+def _persist(con, cutoff: datetime | None, clustered: list[ClusteredEvent]) -> None:
+    """Replace the events inside the window; leave older (retained) events untouched."""
+    if cutoff is None:
+        con.execute("DELETE FROM event_claims")
+        con.execute("DELETE FROM events")
+    else:
+        con.execute(
+            "DELETE FROM event_claims WHERE event_id IN "
+            "(SELECT event_id FROM events WHERE est_time >= ?)",
+            [cutoff],
+        )
+        con.execute("DELETE FROM events WHERE est_time >= ?", [cutoff])
+    for ce in clustered:
+        e = ce.event
+        con.execute(
+            """INSERT INTO events (event_id, centroid_lat, centroid_lon, est_time,
+                   first_seen, last_updated, n_claims, n_independent,
+                   n_source_types, score, refutation_flag, status)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+            [
+                e.event_id, e.centroid_lat, e.centroid_lon, e.est_time,
+                e.first_seen, e.last_updated, e.n_claims, e.n_independent,
+                e.n_source_types, e.score, e.refutation_flag, e.status,
+            ],
+        )
+        for claim_id, weight in zip(ce.claim_ids, ce.weights):
+            con.execute(
+                "INSERT INTO event_claims (event_id, claim_id, weight) VALUES (?,?,?)",
+                [e.event_id, claim_id, weight],
+            )
+
+
+def prune(con, retention_hours: float) -> int:
+    """Drop claims / events / ground truth older than the retention horizon.
+
+    Anchored on the most recent claim, like the cluster window. Returns the number
+    of claims pruned.
+    """
+    anchor = con.execute("SELECT max(event_time) FROM claims").fetchone()[0]
+    if anchor is None:
+        return 0
+    cutoff = anchor - timedelta(hours=retention_hours)
+    con.execute(
+        "DELETE FROM event_claims WHERE event_id IN "
+        "(SELECT event_id FROM events WHERE est_time < ?)",
+        [cutoff],
+    )
+    con.execute("DELETE FROM events WHERE est_time < ?", [cutoff])
+    n = con.execute("SELECT count(*) FROM claims WHERE event_time < ?", [cutoff]).fetchone()[0]
+    con.execute("DELETE FROM claims WHERE event_time < ?", [cutoff])
+    con.execute("DELETE FROM ground_truth WHERE event_time < ?", [cutoff])
+    return int(n)
+
+
+def cluster_window(
+    con, window_hours: float | None = None, retention_hours: float | None = None
+) -> dict:
+    """Cluster the rolling window, persist its events, prune past retention.
+
+    The one entry point the live loop calls each cycle. Returns a summary dict so
+    callers can log it.
+    """
+    if window_hours is None:
+        window_hours = config.CLUSTER_WINDOW_HOURS
+    if retention_hours is None:
+        retention_hours = config.CLAIM_RETENTION_HOURS
+
+    cutoff = window_cutoff(con, window_hours)
+    claims = _load_window(con, cutoff)
+    clustered = cluster_claims(claims)
+    _persist(con, cutoff, clustered)
+    pruned = prune(con, retention_hours)
+    return {
+        "n_claims": len(claims),
+        "n_events": len(clustered),
+        "multi": sum(1 for ce in clustered if ce.event.n_claims > 1),
+        "corroborated": sum(1 for ce in clustered if ce.event.n_independent > 1),
+        "pruned": pruned,
+        "cutoff": cutoff,
+    }

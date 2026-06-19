@@ -168,6 +168,13 @@ ST-DBSCAN over claims with a combined metric: haversine distance + scaled time
 difference. Defaults (configurable): `eps_space = 100 km`, `eps_time = 30 min`,
 `min_samples = 2`. Each cluster becomes a candidate `event`.
 
+For continuous operation `run_cluster` only clusters a rolling
+`CLUSTER_WINDOW_HOURS` window of claims (anchored on the most recent claim, so it
+behaves the same live or on a replayed dump) — clustering is O(n²), so a full
+recompute over all history would eventually OOM. It rebuilds the events inside the
+window, leaves older events untouched, and prunes claims/events/ground-truth past
+`CLAIM_RETENTION_HOURS`.
+
 ### 4.5 Score (`score.py`)
 Per-cluster feature vector:
 - `n_independent` — effective independent sources (post-dedup)
@@ -180,6 +187,10 @@ Per-cluster feature vector:
 
 Model: `LogisticRegression` wrapped in `CalibratedClassifierCV` (isotonic) so
 the output is an honest probability.
+
+`scripts/score_events.py` writes calibrated `P(real)` to the current events using
+the *saved* model, so the live loop can re-score each clustering pass cheaply
+without the heavier retrain in `train.py` (which only needs to run occasionally).
 
 ### 4.6 Calibrate / validate (`calibrate.py`)
 Label each candidate by whether a USGS event exists within `Δd ≤ 150 km`,
@@ -232,7 +243,9 @@ corroborate/
     app.js
   scripts/
     run_ingest.py
+    run_cluster.py         # windowed cluster + retention prune
     train.py
+    score_events.py        # re-score events from the saved model
   data/                    # gitignored: corroborate.duckdb, model.pkl
   tests/
     test_dedup.py
@@ -253,6 +266,10 @@ corroborate/
 - **M7** ✅ Refutation flag end-to-end.
 
 **Status:** M0–M7 complete — the full pipeline runs on live data.
+
+**Live operation:** `run_cluster` is windowed + self-pruning and `score_events`
+re-scores from the saved model, so `ingest → cluster → score_events` can run on a
+loop with `train.py` recalibrating occasionally.
 
 **Weekend cut:** M0–M5 on USGS + EMSC proves the core idea — an automated,
 calibrated, independence-aware corroboration score validated against truth.

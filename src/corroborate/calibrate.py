@@ -23,14 +23,14 @@ from sklearn.preprocessing import StandardScaler
 
 from . import config, db
 from .models import Claim, Event
-from .score import FEATURE_NAMES, feature_vector
+from .score import FEATURE_NAMES, feature_vector, load_model
 from .util import haversine_km
 
 
 # --------------------------------------------------------------------------- #
 # DB assembly + labeling
 # --------------------------------------------------------------------------- #
-def _load_events_with_claims(con) -> list[tuple[Event, list[Claim]]]:
+def load_events_with_claims(con) -> list[tuple[Event, list[Claim]]]:
     ccols = [
         "claim_id", "source_id", "source_type", "external_id", "ingested_at",
         "event_time", "time_uncertainty_s", "lat", "lon", "loc_uncertainty_km",
@@ -135,8 +135,32 @@ def evaluate_and_train(X: np.ndarray, y: np.ndarray, times: np.ndarray) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# Live entry point
+# Live entry points
 # --------------------------------------------------------------------------- #
+def _write_scores(con, events: list[tuple[Event, list[Claim]]], model) -> None:
+    """Write calibrated P(real) (and status 'scored') back to each event."""
+    for ev, claims in events:
+        p = float(model.predict_proba(np.array([feature_vector(ev, claims)]))[0, 1])
+        con.execute(
+            "UPDATE events SET score = ?, status = 'scored' WHERE event_id = ?",
+            [p, ev.event_id],
+        )
+
+
+def score_current_events(con) -> int:
+    """Score every current event with the *persisted* model — no retraining.
+
+    Clustering rebuilds events as unscored candidates each cycle, but training is
+    the expensive step and only runs occasionally. The live loop calls this between
+    retrains to refresh P(real) cheaply. Returns the number of events scored.
+    """
+    events = load_events_with_claims(con)
+    if not events:
+        return 0
+    _write_scores(con, events, load_model())
+    return len(events)
+
+
 def _write_artifacts(metrics: dict) -> None:
     bins = metrics.get("reliability_bins") or []
     lines = ["mean_predicted,observed_fraction,count"]
@@ -168,7 +192,7 @@ def train_and_calibrate() -> dict:
     db.init_db()
     con = db.connect()
     try:
-        events = _load_events_with_claims(con)
+        events = load_events_with_claims(con)
         if not events:
             print("no events — run scripts/run_cluster.py first")
             return {}
@@ -199,12 +223,7 @@ def train_and_calibrate() -> dict:
             pickle.dump(model, fh)
 
         # Write calibrated scores back to events.
-        for (ev, claims) in events:
-            p = float(model.predict_proba(np.array([feature_vector(ev, claims)]))[0, 1])
-            con.execute(
-                "UPDATE events SET score = ?, status = 'scored' WHERE event_id = ?",
-                [p, ev.event_id],
-            )
+        _write_scores(con, events, model)
 
         _write_artifacts(metrics)
 

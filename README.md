@@ -27,10 +27,15 @@ cd corroborate
 uv sync --extra geoparse               # deps + offline gazetteer for social geoparsing
 
 uv run python scripts/run_ingest.py    # poll USGS (truth) + EMSC + Mastodon into claims
-uv run python scripts/run_cluster.py   # cluster claims into candidate events
-uv run python scripts/train.py         # label vs USGS, calibrate, write scores
+uv run python scripts/run_cluster.py   # cluster recent claims (rolling window) into events
+uv run python scripts/train.py         # label vs USGS, calibrate, save model + write scores
 uv run uvicorn corroborate.api:app     # serve map + API at http://127.0.0.1:8000/
 ```
+
+To run continuously, loop `run_ingest` → `run_cluster` → `score_events` every few
+minutes (`run_cluster` keeps only a rolling `CLUSTER_WINDOW_HOURS` window and prunes
+past `CLAIM_RETENTION_HOURS`; `score_events` re-scores from the saved model without
+retraining) and re-run `train.py` occasionally to recalibrate.
 
 Optional social credentials (env vars): `BLUESKY_IDENTIFIER` + `BLUESKY_APP_PASSWORD`, `X_BEARER_TOKEN`.
 
