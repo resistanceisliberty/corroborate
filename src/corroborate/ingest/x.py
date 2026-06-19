@@ -1,15 +1,9 @@
 """X.com (formerly Twitter) social source — high-volume probabilistic claims.
 
-Highest volume of the social sources - retweets and quote-posts of a single wire
-are exactly what independence weighting (§4.3) is for. Lowest openness, though —
-recent search is a PAID API tier, so this poller is token-gated: with no
-X_BEARER_TOKEN it contributes nothing rather than crashing the run.
-
-Access:
-  - API v2 GET /2/tweets/search/recent (Bearer token via env X_BEARER_TOKEN).
-  - Geo expansions: tweet.fields=geo,created_at, expansions=geo.place_id,
-    place.fields=geo,full_name. Use the place bbox centroid when present,
-    otherwise fall back to geoparse() on the text.
+Retweets/quote-posts of one wire are exactly what independence weighting (§4.3) is
+for. Recent search is a PAID API tier, so this poller is token-gated: with no
+X_BEARER_TOKEN it contributes nothing rather than crashing the run. Uses the
+tweet's place-bbox centroid when present, else geoparse() on the text.
 """
 
 from __future__ import annotations

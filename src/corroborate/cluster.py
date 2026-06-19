@@ -148,9 +148,8 @@ def cluster_claims(claims: list[Claim]) -> list[ClusteredEvent]:
 # --------------------------------------------------------------------------- #
 # DB orchestration for the live loop (caller passes a DuckDB connection)
 # --------------------------------------------------------------------------- #
-# Clustering is O(n²) in the number of claims, so a full recompute over all of
-# history would eventually OOM on a feed that never stops. Instead we cluster only
-# a rolling window of recent claims and prune anything past the retention horizon.
+# Clustering is O(n²), so cluster only a rolling window of recent claims (a full
+# recompute over all history would OOM a never-ending feed) and prune the rest.
 
 _CLAIM_COLS = [
     "claim_id", "source_id", "source_type", "external_id", "ingested_at",

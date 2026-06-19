@@ -2,10 +2,8 @@
 
 Usage: uv run python scripts/score_events.py
 
-run_cluster.py rebuilds events as unscored candidates each cycle, but train.py is
-the expensive step and only runs occasionally (e.g. daily). This loads the
-persisted model and writes a calibrated P(real) to every current event, so the
-live loop can refresh scores cheaply after each clustering pass.
+Cheap per-cycle scoring between (occasional) retrains; see
+corroborate.calibrate.score_current_events.
 """
 
 from __future__ import annotations

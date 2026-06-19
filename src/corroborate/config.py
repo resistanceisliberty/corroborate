@@ -16,12 +16,10 @@ EPS_TIME_MIN = 30.0
 MIN_SAMPLES = 2
 
 # --- live operation: bound the working set as the feed runs continuously ---
-# Cluster only claims whose event_time falls within this rolling window (anchored
-# on the most recent claim), so ST-DBSCAN's O(n²) distance matrix stays bounded
-# instead of recomputing over the whole history every cycle.
+# Cluster only claims within this rolling window (anchored on the latest claim) so
+# ST-DBSCAN's O(n²) matrix stays bounded instead of recomputing all history.
 CLUSTER_WINDOW_HOURS = 48.0
-# Prune claims / events / ground truth older than this. Kept well above
-# CLUSTER_WINDOW_HOURS so the rolling window is never starved of recent labels.
+# Prune older than this; kept well above the window so it's never starved.
 CLAIM_RETENTION_HOURS = 24.0 * 14
 
 # --- dedup / independence ---

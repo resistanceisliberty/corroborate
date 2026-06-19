@@ -1,12 +1,7 @@
 """Feature extraction + calibrated scorer (docs/BUILD.md §4.5).
 
-Features per candidate event:
-  n_independent, n_source_types, spatial_dispersion_km, temporal_spread_s,
-  consolidation_lag_s, max_source_prior, max_magnitude
-
-The model (a StandardScaler + LogisticRegression pipeline wrapped in
-CalibratedClassifierCV) is trained in calibrate.py and persisted to
-config.MODEL_PATH; loaded here for serving.
+The model (StandardScaler + LogisticRegression wrapped in CalibratedClassifierCV)
+is trained in calibrate.py, persisted to config.MODEL_PATH, and loaded here.
 """
 
 from __future__ import annotations
@@ -58,10 +53,8 @@ def feature_vector(event: Event, claims: list[Claim]) -> list[float]:
     return [row[name] for name in FEATURE_NAMES]
 
 
-# pickle.load() executes arbitrary code embedded in the file. The model is trained
-# locally by train.py, but we still load it through a restricted unpickler that only
-# permits numpy / scipy / sklearn classes (plus a few safe builtins), so a tampered
-# model.pkl cannot smuggle in os.system-style payloads.
+# pickle.load() runs arbitrary code, so load the (locally-trained) model through a
+# restricted unpickler permitting only numpy/scipy/sklearn + a few safe builtins.
 _SAFE_MODULES = ("numpy", "scipy", "sklearn")
 _SAFE_BUILTINS = frozenset(
     {"range", "slice", "complex", "set", "frozenset", "list", "tuple", "dict", "bytearray", "bytes"}
@@ -83,11 +76,8 @@ _MODEL = None
 
 
 def load_model():
-    """Load (and cache) the trained calibrated model via a restricted unpickler.
-
-    Refuses to load from outside the data dir, and only permits numpy/scipy/sklearn
-    globals — pickle otherwise executes arbitrary code from the file.
-    """
+    """Load (and cache) the model via the restricted unpickler, refusing paths
+    outside the data dir."""
     global _MODEL
     if _MODEL is None:
         path = config.MODEL_PATH.resolve()

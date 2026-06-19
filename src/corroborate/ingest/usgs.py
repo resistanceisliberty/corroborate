@@ -1,8 +1,7 @@
 """USGS earthquake feed — our authoritative ground truth.
 
-Real implementation: USGS GeoJSON needs no API key. Emits Claims (so USGS also
-participates as a source) and the runner separately mirrors these into the
-ground_truth table for calibration labels.
+GeoJSON, no API key. Emits Claims (USGS is also a source); the runner mirrors
+these into the ground_truth table for calibration labels.
 """
 
 from __future__ import annotations

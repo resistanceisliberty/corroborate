@@ -2,11 +2,8 @@
 
 Usage: uv run python scripts/run_cluster.py
 
-Clusters only the claims within a rolling CLUSTER_WINDOW_HOURS window (anchored on
-the most recent claim) so ST-DBSCAN's O(n²) working set stays bounded as the feed
-runs continuously, then prunes claims/events older than CLAIM_RETENTION_HOURS.
-Events inside the window are rebuilt; older (retained) events are left untouched.
-Prints a summary of the candidate events by corroboration level.
+Windowed + self-pruning (see corroborate.cluster.cluster_window); prints a summary
+by corroboration level.
 """
 
 from __future__ import annotations

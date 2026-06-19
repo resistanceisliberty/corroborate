@@ -1,9 +1,8 @@
 """EMSC (seismicportal.eu) — an INDEPENDENT authoritative network.
 
 Independence from USGS is what makes source-weighting demonstrable. The FDSN
-event service (`format=json`) returns a GeoJSON FeatureCollection; each feature's
-`properties` carry `time` (ISO8601), `lat`, `lon`, `depth`, `mag`, `magtype`,
-`unid`, `flynn_region`, ... Geometry is `[lon, lat, depth]`.
+event service (`format=json`) returns a GeoJSON FeatureCollection; feature
+`properties` carry `time` (ISO8601), `lat`, `lon`, `mag`, `unid`, `flynn_region`.
 """
 
 from __future__ import annotations
