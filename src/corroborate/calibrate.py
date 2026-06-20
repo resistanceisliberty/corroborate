@@ -222,7 +222,6 @@ def train_and_calibrate() -> dict:
         with open(config.MODEL_PATH, "wb") as fh:
             pickle.dump(model, fh)
 
-        # Write calibrated scores back to events.
         _write_scores(con, events, model)
 
         _write_artifacts(metrics)
