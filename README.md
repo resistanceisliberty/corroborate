@@ -32,12 +32,23 @@ uv run python scripts/train.py         # label vs USGS, calibrate, save model + 
 uv run uvicorn corroborate.api:app     # serve map + API at http://127.0.0.1:8000/
 ```
 
-To run continuously, loop `run_ingest` → `run_cluster` → `score_events` every few
-minutes (`run_cluster` keeps only a rolling `CLUSTER_WINDOW_HOURS` window and prunes
-past `CLAIM_RETENTION_HOURS`; `score_events` re-scores from the saved model without
-retraining) and re-run `train.py` occasionally to recalibrate.
-
 Optional social credentials (env vars): `BLUESKY_IDENTIFIER` + `BLUESKY_APP_PASSWORD`, `X_BEARER_TOKEN`.
+
+## Run continuously
+
+`scripts/run_cycle.sh` runs one `ingest → cluster → score` cycle under a lock so
+runs never overlap (DuckDB is single-writer; lock + logs live in `data/`).
+`run_cluster` keeps only a rolling `CLUSTER_WINDOW_HOURS` window and prunes past
+`CLAIM_RETENTION_HOURS`, and `score_events` re-scores from the saved model without
+retraining. Schedule with cron — a cycle every 10 min plus a daily recalibration —
+using the absolute path to your checkout:
+
+```cron
+*/10 * * * * /path/to/corroborate/scripts/run_cycle.sh       >> /path/to/corroborate/data/cycle.log 2>&1
+17 3 * * *   /path/to/corroborate/scripts/run_cycle.sh train >> /path/to/corroborate/data/train.log 2>&1
+```
+
+(systemd timers work too; cron is the lighter option.)
 
 ## Layout
 

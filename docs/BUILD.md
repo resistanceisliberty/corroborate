@@ -245,6 +245,7 @@ corroborate/
     run_cluster.py         # windowed cluster + retention prune
     train.py
     score_events.py        # re-score events from the saved model
+    run_cycle.sh           # lock-guarded ingest->cluster->score, for cron
   data/                    # gitignored: corroborate.duckdb, model.pkl
   tests/
     test_dedup.py
@@ -268,7 +269,8 @@ corroborate/
 
 **Live operation:** `run_cluster` is windowed + self-pruning and `score_events`
 re-scores from the saved model, so `ingest → cluster → score_events` can run on a
-loop with `train.py` recalibrating occasionally.
+loop with `train.py` recalibrating occasionally. `scripts/run_cycle.sh` sequences a
+cycle under a lock (DuckDB is single-writer) for scheduling via cron — see README.
 
 **Weekend cut:** M0–M5 on USGS + EMSC proves the core idea — an automated,
 calibrated, independence-aware corroboration score validated against truth.
