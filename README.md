@@ -11,8 +11,9 @@ check a confidence score against before pointing this at messier domains.
 
 ## Status
 
-Ingest authoritative seismic networks (USGS + EMSC) **and social posts** (Mastodon
-live; Bluesky/X behind credentials), geoparse the social text, cluster everything in
+Ingest authoritative seismic networks (USGS + EMSC), **social posts** (Mastodon
+live; Bluesky/X behind credentials), **and disaster news** (GDACS RSS), geoparse
+the social text, cluster everything in
 space and time (MinHash collapses reposts so corroboration counts *independent*
 sources), score each candidate event with a **calibrated P(real)** — trained against
 held-out USGS ground truth and validated with a reliability diagram, flag events

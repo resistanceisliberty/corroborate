@@ -60,7 +60,8 @@ with independence weighting, calibration, and refutation.
     text to `geoparse.py` like any other social claim.
   - Heaviest dedup load: retweets/quote-posts of one wire are prototypical case
     for independence weighting, so X is where §4.3 earns its keep.
-- **News / disaster RSS** — e.g. GDACS (`https://www.gdacs.org/xml/rss.xml`).
+- **News / disaster RSS** — GDACS (`https://www.gdacs.org/xml/rss.xml`); we keep
+  its earthquake items (georss coords + magnitude parsed from the severity field).
 
 > Note on independence: USGS held out as ground-truth labels. EMSC + social +
 > news form the probabilistic pool we cluster and score. EMSC is a reliable

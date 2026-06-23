@@ -2,8 +2,8 @@
 
 Usage: uv run python scripts/run_ingest.py
 
-M1 status: USGS (ground truth) and EMSC (independent network) are real. Social/
-news pollers remain stubs (M6). Each source runs independently — one failing does
+USGS (ground truth), EMSC, Mastodon, and the GDACS news RSS run unauthenticated;
+Bluesky/X are credential-gated. Each source runs independently — one failing does
 not abort the others. Dedup-on-write by (source_id, external_id).
 """
 
@@ -16,6 +16,7 @@ from corroborate.ingest.base import Poller
 from corroborate.ingest.bluesky import BlueskyPoller
 from corroborate.ingest.emsc import EMSCPoller
 from corroborate.ingest.mastodon import MastodonPoller
+from corroborate.ingest.rss import RSSPoller
 from corroborate.ingest.usgs import USGSPoller
 from corroborate.ingest.x import XPoller
 
@@ -78,7 +79,7 @@ def main() -> None:
         _run_poller(con, MastodonPoller(), ground_truth=False)  # unauthenticated
         _run_poller(con, BlueskyPoller(), ground_truth=False)   # needs BLUESKY_* env
         _run_poller(con, XPoller(), ground_truth=False)         # needs X_BEARER_TOKEN
-        # TODO M6: RSSPoller (news/disaster)
+        _run_poller(con, RSSPoller(), ground_truth=False)       # GDACS disaster RSS
     finally:
         con.close()
 
