@@ -149,7 +149,8 @@ polling cadence, dedup-on-write by `external_id`, and writing `raw_json`.
 ### 4.2 Geoparse (`geoparse.py`)
 USGS/EMSC arrive geocoded. Social/news need extraction: an offline gazetteer
 (`geonamescache` — cities + country capitals) plus a small supplement of
-sub-national seismic regions, with a proper-noun heuristic and a confidence floor
+sub-national seismic regions and country demonyms (`Japanese`, `Chilean`), with a
+proper-noun heuristic and a confidence floor
 that drops claims with no confident match → centroid + `loc_uncertainty_km`
 (bigger for country-level, smaller for a named town). This is the messiest part;
 budget time.

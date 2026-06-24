@@ -27,6 +27,12 @@ def test_country_via_capital():
     assert -40 < got[0] < -20
 
 
+def test_demonym_match():
+    # A country adjective ("Chilean") resolves to Chile — the bare gazetteer missed it.
+    got = geoparse("strong Chilean earthquake reported offshore")
+    assert got is not None and -40 < got[0] < -20
+
+
 def test_no_location_returns_none():
     assert geoparse("the ground was shaking so much i was scared") is None
 

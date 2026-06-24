@@ -49,6 +49,20 @@ _STOP = {
 
 _WORD = re.compile(r"[A-Za-z]+")
 
+# Country demonyms (adjective forms) — common in social text ("Japanese earthquake")
+# but absent from the city/country gazetteer. Each maps to its country's centroid.
+_DEMONYMS = {
+    "japanese": "japan", "chinese": "china", "indonesian": "indonesia",
+    "filipino": "philippines", "philippine": "philippines", "mexican": "mexico",
+    "chilean": "chile", "peruvian": "peru", "ecuadorian": "ecuador",
+    "ecuadorean": "ecuador", "colombian": "colombia", "turkish": "turkey",
+    "greek": "greece", "italian": "italy", "iranian": "iran", "afghan": "afghanistan",
+    "pakistani": "pakistan", "nepalese": "nepal", "nepali": "nepal",
+    "taiwanese": "taiwan", "russian": "russia", "argentine": "argentina",
+    "argentinian": "argentina", "guatemalan": "guatemala", "salvadoran": "el salvador",
+    "nicaraguan": "nicaragua", "haitian": "haiti", "venezuelan": "venezuela",
+}
+
 
 @lru_cache(maxsize=1)
 def _gazetteer() -> dict[str, tuple[float, float, float, int]] | None:
@@ -80,6 +94,11 @@ def _gazetteer() -> dict[str, tuple[float, float, float, int]] | None:
                 # population rank kept high so a country beats a tiny same-named town
                 idx.setdefault(cname, (float(cd["latitude"]), float(cd["longitude"]), 400.0, 10**8))
                 break
+
+    # Demonyms reuse their country's centroid (added after countries populate idx).
+    for demonym, country in _DEMONYMS.items():
+        if country in idx:
+            idx[demonym] = idx[country]
 
     for name, (lat, lon, unc) in _SUPPLEMENT.items():
         idx[name] = (lat, lon, unc, 10**7)
