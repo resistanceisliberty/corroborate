@@ -7,6 +7,10 @@ export PATH="$HOME/.local/bin:$PATH"   # cron's PATH usually lacks uv's dir
 cd "$(dirname "$0")/.."
 mkdir -p data
 
+# Social credentials for the credential-gated pollers (Bluesky/X/Reddit). cron
+# does not inherit your shell env, so source them here. data/ is gitignored.
+set -a; [ -f data/secrets.env ] && . data/secrets.env; set +a
+
 steps=("$@")
 [ ${#steps[@]} -eq 0 ] && steps=(run_ingest run_cluster score_events)
 

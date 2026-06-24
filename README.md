@@ -33,7 +33,27 @@ uv run python scripts/train.py         # label vs USGS, calibrate, save model + 
 uv run uvicorn corroborate.api:app     # serve map + API at http://127.0.0.1:8000/
 ```
 
-Optional social credentials (env vars): `BLUESKY_IDENTIFIER` + `BLUESKY_APP_PASSWORD`, `X_BEARER_TOKEN`.
+## Social credentials
+
+Mastodon and GDACS need no setup. The other sources are gated on env vars —
+unset, they simply contribute nothing:
+
+| source | env vars | where to get them |
+|---|---|---|
+| Bluesky | `BLUESKY_IDENTIFIER`, `BLUESKY_APP_PASSWORD` | Settings → App Passwords (bsky.app) |
+| Reddit | `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` | create an app at reddit.com/prefs/apps |
+| X | `X_BEARER_TOKEN` | developer.x.com (paid tier for recent search) |
+
+For a one-off run, `export` them in your shell. For the scheduled loop, put them in
+`data/secrets.env` (gitignored), which `run_cycle.sh` sources:
+
+```sh
+BLUESKY_IDENTIFIER=you.bsky.social
+BLUESKY_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
+REDDIT_CLIENT_ID=...
+REDDIT_CLIENT_SECRET=...
+X_BEARER_TOKEN=...
+```
 
 ## Run continuously
 

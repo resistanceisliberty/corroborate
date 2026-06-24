@@ -60,6 +60,9 @@ with independence weighting, calibration, and refutation.
     text to `geoparse.py` like any other social claim.
   - Heaviest dedup load: retweets/quote-posts of one wire are prototypical case
     for independence weighting, so X is where §4.3 earns its keep.
+- **Reddit** — `search` over public posts, same keyword set. Application-only
+  OAuth (`REDDIT_CLIENT_ID` + `REDDIT_CLIENT_SECRET`); discussion-heavy and weakly
+  geolocated, so it leans on `geoparse.py`.
 - **News / disaster RSS** — GDACS (`https://www.gdacs.org/xml/rss.xml`); we keep
   its earthquake items (georss coords + magnitude parsed from the severity field).
 
@@ -230,9 +233,11 @@ corroborate/
       base.py              # Poller base class
       usgs.py              # ground truth
       emsc.py              # independent network
-      bluesky.py           # social (phase: after core)
+      mastodon.py          # social — public tag timeline (no auth)
+      bluesky.py           # social — app password
       x.py                 # social — X.com / Twitter (paid API)
-      rss.py               # news/disaster
+      reddit.py            # social — application-only OAuth
+      rss.py               # news/disaster — GDACS
     geoparse.py
     dedup.py
     cluster.py

@@ -64,5 +64,6 @@ SOURCE_PRIORS: dict[str, float] = {
     "rss:gdacs": 0.75,
     "mastodon": 0.30,
     "bluesky": 0.30,
+    "reddit": 0.28,  # discussion-heavy, often second-hand, but low bot volume
     "x": 0.25,  # higher volume than Bluesky, but noisier / more bots
 }
