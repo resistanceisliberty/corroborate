@@ -71,6 +71,30 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/status.json")
+def status():
+    """Per-source ingest health + newest event time, for the map freshness panel."""
+    con = db.connect(read_only=True)
+    try:
+        sources = [
+            {
+                "source_id": sid,
+                "ok": bool(ok) if ok is not None else None,
+                "n_claims": n,
+                "last_success": ls.isoformat() if ls else None,
+                "last_error": err,
+            }
+            for sid, ok, n, ls, err in con.execute(
+                "SELECT source_id, ok, n_claims, last_success, last_error "
+                "FROM source_health ORDER BY source_id"
+            ).fetchall()
+        ]
+        newest = con.execute("SELECT max(est_time) FROM events").fetchone()[0]
+        return {"sources": sources, "newest_event": newest.isoformat() if newest else None}
+    finally:
+        con.close()
+
+
 @app.get("/events.geojson")
 def events_geojson(since: str | None = None, min_score: float = 0.0):
     if since is not None:

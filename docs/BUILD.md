@@ -125,6 +125,16 @@ CREATE TABLE ground_truth (
   magnitude         DOUBLE,
   raw_json          JSON
 );
+
+-- Per-source ingest health (map freshness indicator + failure visibility).
+CREATE TABLE source_health (
+  source_id         TEXT PRIMARY KEY,
+  updated_at        TIMESTAMP,
+  ok                BOOLEAN,
+  n_claims          INTEGER,
+  last_success      TIMESTAMP,
+  last_error        TEXT
+);
 ```
 
 ---
@@ -212,6 +222,11 @@ FastAPI → scored events as GeoJSON (`/events.geojson?since=...`). MapLibre GL 
 a global basemap (`demotiles.maplibre.org`): markers colored by `P(real)`; click → sources,
 the space-time proof, and refutation flag; time slider replays score as reports
 arrive.
+
+Each ingest writes per-source outcomes to `source_health`; `/status.json` exposes
+them and the map shows a freshness line (age of the newest event) plus a chip per
+source that turns red when a feed has failed or gone stale — passive failure
+alerting with no mail server. (Push alerting — email/webhook — is a later add.)
 
 ---
 

@@ -10,6 +10,7 @@ does not abort the others. Dedup-on-write by (source_id, external_id).
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 from corroborate import db
 from corroborate.ingest.base import Poller
@@ -56,6 +57,7 @@ def _mirror_ground_truth(con, c) -> None:
 
 def _run_poller(con, poller: Poller, *, ground_truth: bool) -> None:
     """Fetch from one source and write claims; isolate failures per source."""
+    now = datetime.now(tz=timezone.utc)
     try:
         inserted = 0
         for claim in poller.fetch():
@@ -63,11 +65,13 @@ def _run_poller(con, poller: Poller, *, ground_truth: bool) -> None:
                 inserted += 1
             if ground_truth:
                 _mirror_ground_truth(con, claim)
+        db.record_source_health(con, poller.source_id, True, inserted, None, now)
         label = "ground truth" if ground_truth else "probabilistic"
         print(f"{poller.source_id}: inserted {inserted} new claims ({label})")
     except NotImplementedError:
         print(f"{poller.source_id}: skipped (stub)")
     except Exception as exc:  # noqa: BLE001 — one bad source must not abort the run
+        db.record_source_health(con, poller.source_id, False, 0, f"{type(exc).__name__}: {exc}", now)
         print(f"{poller.source_id}: ERROR {type(exc).__name__}: {exc}")
 
 

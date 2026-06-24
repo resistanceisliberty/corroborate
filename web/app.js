@@ -48,6 +48,28 @@ function wireSlider() {
   update();
 }
 
+async function updateStatus() {
+  const ts = allFeatures.map((f) => Date.parse(f.properties.est_time)).filter((t) => !isNaN(t));
+  if (ts.length) {
+    const age = Math.round((Date.now() - Math.max(...ts)) / 60000);
+    document.getElementById("freshness").textContent = `newest event: ${age} min ago`;
+  }
+  const status = await fetch("/status.json").then((r) => r.json()).catch(() => null);
+  if (!status) return;
+  const box = document.getElementById("sources");
+  box.innerHTML = "";
+  for (const s of status.sources) {
+    const last = s.last_success ? Date.parse(s.last_success) : NaN;
+    const age = isNaN(last) ? Infinity : Math.round((Date.now() - last) / 60000);
+    const stale = s.ok === false || age > 30;
+    const chip = document.createElement("span");
+    chip.className = "chip " + (stale ? "stale" : "ok");
+    chip.textContent = isNaN(last) ? `${s.source_id} ✕` : `${s.source_id} ${age}m`;
+    chip.title = s.last_error || (s.last_success ? `last ok: ${s.last_success}` : "no successful poll");
+    box.appendChild(chip);
+  }
+}
+
 map.on("load", async () => {
   const fc = await fetch("/events.geojson")
     .then((r) => r.json())
@@ -94,4 +116,5 @@ map.on("load", async () => {
   map.on("mouseleave", "events", () => (map.getCanvas().style.cursor = ""));
 
   wireSlider();
+  updateStatus();
 });

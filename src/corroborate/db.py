@@ -54,6 +54,16 @@ CREATE TABLE IF NOT EXISTS event_claims (
     claim_id            UUID,
     weight              DOUBLE
 );
+
+-- Per-source ingest health, for the map freshness indicator + failure visibility.
+CREATE TABLE IF NOT EXISTS source_health (
+    source_id           TEXT PRIMARY KEY,
+    updated_at          TIMESTAMP,
+    ok                  BOOLEAN,
+    n_claims            INTEGER,
+    last_success        TIMESTAMP,
+    last_error          TEXT
+);
 """
 
 
@@ -70,6 +80,22 @@ def init_db() -> None:
         print(f"initialized schema at {config.DB_PATH}")
     finally:
         con.close()
+
+
+def record_source_health(con, source_id, ok, n_claims, error, now) -> None:
+    """Upsert one source's last ingest outcome; keeps last_success across failures."""
+    con.execute(
+        """INSERT INTO source_health
+               (source_id, updated_at, ok, n_claims, last_success, last_error)
+           VALUES (?,?,?,?,?,?)
+           ON CONFLICT (source_id) DO UPDATE SET
+               updated_at   = excluded.updated_at,
+               ok           = excluded.ok,
+               n_claims     = excluded.n_claims,
+               last_success = coalesce(excluded.last_success, source_health.last_success),
+               last_error   = excluded.last_error""",
+        [source_id, now, ok, n_claims, now if ok else None, error],
+    )
 
 
 if __name__ == "__main__":
